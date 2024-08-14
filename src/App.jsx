@@ -14,7 +14,7 @@ const queryClient = new QueryClient();
 function App() {
     return (
         <QueryClientProvider client={queryClient}>
-            <div style={{ position: 'relative', width: '800px' }}>
+            <div className='App'>
                 <h1>Search Star Wars characters</h1>
                 <SearchDropdown
                     placeholder="Search characters..."

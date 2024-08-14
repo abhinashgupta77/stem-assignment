@@ -1,4 +1,5 @@
-import { useCallback, useMemo, useState } from "react";
+import React from 'react';
+import { useCallback, useMemo, useRef, useState } from "react";
 import PropTypes from "prop-types";
 import {
     TextField,
@@ -9,19 +10,21 @@ import {
     Typography,
 } from "@mui/material";
 
-import { useSearch } from "../api/search";
-import useDebounce from "../hooks/useDebounce";
+import { useSearch } from "../../api/search";
+import useDebounce from "../../hooks/useDebounce";
+import useOnClickOutside from "../../hooks/useOnClickOutside";
 
 const styles = {
     dropdown: {
         position: 'absolute',
-        border: '1px solid #ccc',
+        border: '1px solid #e6ecff',
         borderRadius: '4px',
         backgroundColor: '#fff',
         zIndex: 1,
         maxHeight: '200px',
         overflowY: 'auto',
         width: '100%',
+        boxShadow: '0 0 15px #1e1f261a',
     },
     chip: {
         marginRight: 8,
@@ -63,6 +66,9 @@ const SearchDropdown = ({
     const [selectedItems, setSelectedItems] = useState([]);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
+    // Ref for the dropdown container
+    const dropdownRef = useRef(null);
+
     // Debounced input value to reduce the number of API calls
     const debouncedInputValue = useDebounce(inputValue, 500);
 
@@ -83,6 +89,11 @@ const SearchDropdown = ({
     const handleInputChange = useCallback((event) => {
         setInputValue(event.target.value);
         setIsDropdownOpen(true);
+    }, []);
+
+    // Handler for focusing on the input field
+    const handleFocus = useCallback(() => {
+        setIsDropdownOpen(true); // Open dropdown when input is focused
     }, []);
 
     // Handler for selecting an option from the dropdown
@@ -109,17 +120,20 @@ const SearchDropdown = ({
     // Determine if the 'No results found' message should be displayed
     const showNoDataFound = useMemo(() => !isLoading && debouncedInputValue && results.length === 0,
         [isLoading, debouncedInputValue, results]);
+    
+    useOnClickOutside(dropdownRef, setIsDropdownOpen);
 
     return (
-        <Box>
+        <Box ref={dropdownRef}>
             <TextField
-                value={inputValue}
-                onChange={handleInputChange}
-                placeholder={placeholder}
-                autoComplete="off"
                 fullWidth
-                aria-label={placeholder}
+                value={inputValue}
+                autoComplete="off"
                 aria-describedby="search-helper-text"
+                placeholder={placeholder}
+                aria-label={placeholder}
+                onFocus={handleFocus}
+                onChange={handleInputChange}
                 InputProps={{
                     endAdornment: isLoading && <CircularProgress size={24} />,
                     startAdornment: (
